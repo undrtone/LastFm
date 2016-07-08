@@ -308,6 +308,9 @@
     // We need to send all the params in a sorted fashion
     NSMutableArray *sortedParamsArray = [NSMutableArray array];
     for (NSString *key in sortedParamKeys) {
+/** Debug. Print the parameters.
+        NSLog(@"%@ %@", [NSString stringWithFormat:@"%@=%@", [self urlEscapeString:key], [self urlEscapeString:[newParams objectForKey:key]]]);
+*/
         [sortedParamsArray addObject:[NSString stringWithFormat:@"%@=%@", [self urlEscapeString:key], [self urlEscapeString:[newParams objectForKey:key]]]];
     }
 
@@ -335,13 +338,17 @@
 
         // Do we need to POST or GET?
         BOOL doPost = YES;
-        NSArray *methodParts = [method componentsSeparatedByString:@"."];
+
+/** Patched by Michael. auth.getMobileSession MUST use POST.
+
+         NSArray *methodParts = [method componentsSeparatedByString:@"."];
         if ([methodParts count] > 1) {
             NSString *secondPart = [methodParts objectAtIndex:1];
             if ([secondPart hasPrefix:@"get"]) {
                 doPost = NO;
             }
         }
+*/
 
         NSMutableURLRequest *request;
         if (doPost) {
@@ -367,6 +374,15 @@
         if ([weakOp isCancelled]) {
             return;
         }
+        
+/** Debugging. Print the response.
+
+        NSLog(@"-----");
+        NSLog(@"%@", data);
+        NSString *someString = [[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding];
+        NSLog(@"%@", someString);
+        NSLog(@"-----");
+**/
 
         NSNumber *maxAgeNumber = [response.allHeaderFields objectForKey:@"Access-Control-Max-Age"];
         NSTimeInterval maxAge = [maxAgeNumber integerValue];
@@ -862,7 +878,7 @@
 
     return [self performApiCallForMethod:@"auth.getMobileSession"
                                 useCache:NO
-                              withParams:@{ @"username": [username lowercaseString], @"authToken": authToken }
+                              withParams:@{ @"username": [username lowercaseString], @"password": password }
                                rootXpath:@"./session"
                         returnDictionary:YES
                             mappingObject:mappingObject
